@@ -1,0 +1,6 @@
+{
+  "name": "Velo - Servicios a Domicilio con Pagos Escrow",
+  "description": "Plataforma SaaS-enabled con pagos en custodia (Escrow), comisiones decrecientes (Reverse Take Rate), transparencia de precios All-In y suite para profesionales.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

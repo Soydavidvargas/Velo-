@@ -1,0 +1,371 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-midnight-harbor: #0b3658;
+  --color-signal-blue: #4e9ad9;
+  --color-slate-channel: #486984;
+  --color-pale-steel: #688dac;
+  --color-sea-fog: #dde7ee;
+  --color-ice-tint: #e6f1fa;
+  --color-light-mist: #c8d8e4;
+  --color-canvas-white: #ffffff;
+  --color-active-teal: #42b3b1;
+
+  /* Typography */
+  --font-figtree: 'Figtree', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: 'Figtree', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Typography — Scale */
+  --text-caption: 10px;
+  --leading-caption: 1.5;
+  --tracking-caption: 0.1px;
+  --text-body-sm: 14px;
+  --leading-body-sm: 1.4;
+  --tracking-body-sm: -0.07px;
+  --text-body: 16px;
+  --leading-body: 1.5;
+  --tracking-body: -0.08px;
+  --text-subheading: 18px;
+  --leading-subheading: 1.4;
+  --tracking-subheading: -0.09px;
+  --text-heading-sm: 20px;
+  --leading-heading-sm: 1.3;
+  --tracking-heading-sm: -0.1px;
+  --text-heading: 24px;
+  --leading-heading: 1.3;
+  --tracking-heading: -0.12px;
+  --text-heading-lg: 32px;
+  --leading-heading-lg: 1.25;
+  --tracking-heading-lg: -0.16px;
+  --text-display: 48px;
+  --leading-display: 1.2;
+  --tracking-display: -0.24px;
+  --text-hero: 100px;
+  --leading-hero: 1;
+  --tracking-hero: -0.5px;
+
+  /* Spacing */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-28: 28px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-56: 56px;
+  --spacing-60: 60px;
+  --spacing-64: 64px;
+  --spacing-80: 80px;
+  --spacing-180: 180px;
+
+  /* Border Radius */
+  --radius-md: 5px;
+  --radius-lg: 8px;
+  --radius-2xl: 16px;
+  --radius-2xl-2: 20px;
+  --radius-3xl: 24px;
+  --radius-3xl-2: 32px;
+  --radius-3xl-3: 35px;
+  --radius-3xl-4: 40px;
+  --radius-full: 48px;
+  --radius-full-2: 80px;
+  --radius-full-3: 120px;
+
+  /* Shadows */
+  --shadow-xl: rgba(11, 54, 88, 0.08) 0px 12px 48px 0px;
+  --shadow-xl-2: rgba(11, 54, 88, 0.08) 0px 4px 32px 0px;
+  --shadow-md: rgba(11, 54, 88, 0.04) 0px 4px 12px 0px;
+  --shadow-xl-3: rgba(11, 54, 88, 0.08) 0px -20px 80px 0px;
+  --shadow-sm: rgb(255, 255, 255) 0px 0px 8px 16px;
+  --shadow-xl-4: rgba(11, 54, 88, 0.04) 0px 4px 32px 0px;
+  --shadow-xl-5: rgba(11, 54, 88, 0.08) 0px -4px 32px 0px;
+}
+
+body {
+  font-family: var(--font-figtree);
+  background-color: #ffffff;
+  color: #0b3658;
+}
+
+/* ===================================================
+   cord.com Component Classes
+   "deep ocean signal station — a deep-navy command deck 
+   set against white sea-fog, punctuated by one bright blue flare"
+   =================================================== */
+
+/* Card: 20px radius, white fill, 1px #dde7ee stroke, blue-tinted shadow */
+.cord-card {
+  background-color: #ffffff;
+  border: 1px solid #dde7ee;
+  border-radius: 20px;
+  box-shadow: 0px 12px 48px 0px rgba(11, 54, 88, 0.08);
+}
+
+.cord-card-subtle {
+  background-color: #ffffff;
+  border: 1px solid #dde7ee;
+  border-radius: 20px;
+  box-shadow: 0px 4px 32px 0px rgba(11, 54, 88, 0.04);
+}
+
+.cord-card-interactive {
+  background-color: #ffffff;
+  border: 1px solid #dde7ee;
+  border-radius: 20px;
+  box-shadow: 0px 12px 48px 0px rgba(11, 54, 88, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.cord-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: #4e9ad9;
+  box-shadow: 0px 16px 48px 0px rgba(11, 54, 88, 0.12);
+}
+
+/* Primary Action Button (filled #4e9ad9) */
+.cord-btn-primary {
+  background-color: #4e9ad9;
+  color: #ffffff;
+  font-family: var(--font-figtree);
+  font-weight: 600;
+  border-radius: 24px;
+  padding: 12px 20px;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.cord-btn-primary:hover {
+  filter: brightness(1.05);
+  box-shadow: 0px 4px 12px 0px rgba(11, 54, 88, 0.08);
+  transform: translateY(-1px);
+}
+
+.cord-btn-primary:active {
+  transform: translateY(0px);
+}
+
+/* Secondary Button (#e6f1fa fill, #0b3658 text) */
+.cord-btn-secondary {
+  background-color: #e6f1fa;
+  color: #0b3658;
+  font-family: var(--font-figtree);
+  font-weight: 600;
+  border-radius: 24px;
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.cord-btn-secondary:hover {
+  background-color: #dde7ee;
+  color: #0b3658;
+}
+
+/* Ghost / Outlined Button */
+.cord-btn-ghost {
+  background-color: transparent;
+  color: #0b3658;
+  font-family: var(--font-figtree);
+  font-weight: 600;
+  border-radius: 24px;
+  padding: 8px 16px;
+  transition: all 0.15s ease;
+}
+
+.cord-btn-ghost:hover {
+  background-color: #e6f1fa;
+  color: #0b3658;
+}
+
+/* Search Input (wide pill with 24px radius, white fill, #dde7ee border) */
+.cord-input {
+  background-color: #ffffff;
+  border: 1px solid #dde7ee;
+  border-radius: 24px;
+  color: #0b3658;
+  padding: 14px 20px;
+  font-family: var(--font-figtree);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cord-input::placeholder {
+  color: #486984;
+}
+
+.cord-input:focus {
+  outline: none;
+  border-color: #4e9ad9;
+  box-shadow: 0px 4px 32px 0px rgba(11, 54, 88, 0.08);
+}
+
+/* Segmented Toggle Switch (24px container, 20px active pill) */
+.cord-toggle-container {
+  display: inline-flex;
+  padding: 4px;
+  background-color: #ffffff;
+  border: 1px solid #dde7ee;
+  border-radius: 24px;
+  box-shadow: 0px 4px 12px 0px rgba(11, 54, 88, 0.04);
+}
+
+.cord-toggle-item-active {
+  background-color: #e6f1fa;
+  color: #0b3658;
+  font-weight: 700;
+  border-radius: 20px;
+}
+
+.cord-toggle-item-inactive {
+  background-color: transparent;
+  color: #486984;
+  font-weight: 400;
+}
+
+/* Status Badge: 5px radius, #e6f1fa background, #4e9ad9 text */
+.cord-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #e6f1fa;
+  color: #4e9ad9;
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Filter Chip: 8px radius, white fill, 1px #dde7ee stroke */
+.cord-chip {
+  background-color: #ffffff;
+  border: 1px solid #dde7ee;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: var(--font-figtree);
+  font-size: 14px;
+  font-weight: 600;
+  color: #0b3658;
+  transition: all 0.15s ease;
+}
+
+.cord-chip:hover {
+  background-color: #e6f1fa;
+  border-color: #4e9ad9;
+}
+
+.cord-chip-active {
+  background-color: #e6f1fa;
+  border-color: #4e9ad9;
+  color: #0b3658;
+  font-weight: 700;
+}
+
+/* Full-Bleed Dark CTA Banner (#0b3658 background) */
+.cord-dark-banner {
+  background-color: #0b3658;
+  color: #ffffff;
+}
+
+/* Backward compatibility aliases */
+.clay-card {
+  background-color: #ffffff;
+  border: 1px solid #dde7ee;
+  border-radius: 20px;
+  box-shadow: 0px 12px 48px 0px rgba(11, 54, 88, 0.08);
+}
+
+.clay-card-interactive {
+  background-color: #ffffff;
+  border: 1px solid #dde7ee;
+  border-radius: 20px;
+  box-shadow: 0px 12px 48px 0px rgba(11, 54, 88, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.clay-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: #4e9ad9;
+  box-shadow: 0px 16px 48px 0px rgba(11, 54, 88, 0.12);
+}
+
+.clay-button-primary {
+  background-color: #4e9ad9;
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 24px;
+  padding: 10px 18px;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.clay-button-primary:hover {
+  filter: brightness(1.05);
+  box-shadow: 0px 4px 12px 0px rgba(11, 54, 88, 0.08);
+}
+
+.clay-button-secondary {
+  background-color: #e6f1fa;
+  color: #0b3658;
+  font-weight: 600;
+  border-radius: 24px;
+  padding: 10px 18px;
+  border: 1px solid #dde7ee;
+  transition: all 0.15s ease;
+}
+
+.clay-button-secondary:hover {
+  background-color: #dde7ee;
+}
+
+.clay-button-accent {
+  background-color: #4e9ad9;
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 24px;
+  padding: 10px 18px;
+  transition: all 0.15s ease;
+}
+
+.clay-button-accent:hover {
+  filter: brightness(1.05);
+  box-shadow: 0px 4px 12px 0px rgba(11, 54, 88, 0.08);
+}
+
+.clay-input {
+  background-color: #ffffff;
+  border: 1px solid #dde7ee;
+  border-radius: 20px;
+  color: #0b3658;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.clay-input:focus {
+  outline: none;
+  border-color: #4e9ad9;
+  box-shadow: 0px 4px 32px 0px rgba(11, 54, 88, 0.08);
+}
+
+/* Light theme shimmer loader */
+@keyframes shimmer-cord {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #e6f1fa 0%,
+    #dde7ee 50%,
+    #e6f1fa 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-cord 1.8s infinite ease-in-out;
+}
