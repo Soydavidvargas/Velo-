@@ -10,7 +10,7 @@ import {
   Sparkles, 
   UserCheck 
 } from 'lucide-react';
-import { ServiceItem, User, CommissionBreakdown } from '../types';
+import { ServiceItem, User, CommissionBreakdown, WorkerAd } from '../types';
 import { apiClient } from '../services/apiClient';
 import { formatCOP } from '../utils/formatCurrency';
 
@@ -22,6 +22,8 @@ interface BookingModalProps {
   pros: User[];
   onOrderCreated: (newOrder: any) => void;
   initialNotes?: string;
+  initialProId?: string;
+  selectedAd?: WorkerAd | null;
   onTriggerPaymentRetryFlow?: () => void;
 }
 
@@ -33,15 +35,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   pros,
   onOrderCreated,
   initialNotes = '',
+  initialProId,
+  selectedAd = null,
   onTriggerPaymentRetryFlow,
 }) => {
-  const [selectedProId, setSelectedProId] = useState<string>(pros[0]?.id || '');
+  const [selectedProId, setSelectedProId] = useState<string>(initialProId || pros[0]?.id || '');
   const [scheduledDate, setScheduledDate] = useState<string>('2026-11-12');
   const [scheduledTimeSlot, setScheduledTimeSlot] = useState<string>('10:00 AM - 12:00 PM');
   const [address, setAddress] = useState<string>(currentUser.city || 'Calle 67 # 7-35, Apto 402, Chapinero, Bogotá');
   const [notes, setNotes] = useState<string>(initialNotes);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [quoteInfo, setQuoteInfo] = useState<{ transactionNumber: number; breakdown: CommissionBreakdown } | null>(null);
+
+  useEffect(() => {
+    if (initialProId) {
+      setSelectedProId(initialProId);
+    } else if (!selectedProId && pros[0]?.id) {
+      setSelectedProId(pros[0].id);
+    }
+  }, [initialProId, pros]);
+
+  useEffect(() => {
+    setNotes(initialNotes || '');
+  }, [initialNotes]);
 
   useEffect(() => {
     if (!service) return;
@@ -61,6 +77,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         clientId: currentUser.id,
         proId: selectedProId,
         serviceId: service.id,
+        workerAdId: selectedAd?.id,
+        customTitle: selectedAd?.title || service.title,
+        customPrice: selectedAd?.priceFrom || service.basePrice,
+        category: selectedAd?.category || service.category,
         scheduledDate: new Date(scheduledDate).toISOString(),
         scheduledTimeSlot,
         address,

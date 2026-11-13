@@ -9,22 +9,27 @@ import {
   FileText, 
   Heart, 
   Star, 
-  ArrowRight,
   Timer,
-  Clock
+  Clock,
+  KeyRound,
+  MessageSquare,
+  Mail,
+  Navigation
 } from 'lucide-react';
-import { Order, User } from '../types';
+import { Order, User, DirectMessage } from '../types';
 import { apiClient } from '../services/apiClient';
 import { generateInvoicePdf } from '../utils/pdfGenerator';
 import { formatCOP } from '../utils/formatCurrency';
 import { HumanSupportChat } from './HumanSupportChat';
 import { SuccessCelebrationModal } from './SuccessCelebrationModal';
+import { RealtimeChatDrawer } from './RealtimeChatDrawer';
 
 interface EscrowTrackerProps {
   orders: Order[];
   currentUser: User;
   onRefreshOrders: () => void;
   onSelectTab: (tab: any) => void;
+  incomingMessages?: DirectMessage[];
 }
 
 export const EscrowTracker: React.FC<EscrowTrackerProps> = ({
@@ -32,6 +37,7 @@ export const EscrowTracker: React.FC<EscrowTrackerProps> = ({
   currentUser,
   onRefreshOrders,
   onSelectTab,
+  incomingMessages = [],
 }) => {
   const [selectedOrderId, setSelectedOrderId] = useState<string>(orders[0]?.id || '');
   const [disputeReasonInput, setDisputeReasonInput] = useState<string>('');
@@ -41,6 +47,7 @@ export const EscrowTracker: React.FC<EscrowTrackerProps> = ({
   const [favoritePros, setFavoritePros] = useState<string[]>(['usr_pro_mario']);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [celebrationOrder, setCelebrationOrder] = useState<Order | null>(null);
+  const [chatDrawerMode, setChatDrawerMode] = useState<'chat' | 'email' | null>(null);
 
   const activeOrder = orders.find(o => o.id === selectedOrderId) || orders[0];
 
@@ -51,18 +58,6 @@ export const EscrowTracker: React.FC<EscrowTrackerProps> = ({
       origin: { y: 0.6 },
       colors: ['#4e9ad9', '#42b3b1', '#0b3658', '#688dac'],
     });
-  };
-
-  const handleProCompleteJob = async (orderId: string) => {
-    setActionLoading(true);
-    try {
-      await apiClient.completeOrderByPro(orderId);
-      onRefreshOrders();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setActionLoading(false);
-    }
   };
 
   const handleClientReleaseFunds = async (orderId: string) => {
@@ -339,24 +334,93 @@ export const EscrowTracker: React.FC<EscrowTrackerProps> = ({
             </div>
           </div>
 
+          {/* Rappi-Style Arrival Verification Panel (Visible strictly to Client) */}
+          {(activeOrder.escrowStatus === 'ESCROW_HELD' || activeOrder.arrivalVerified) && (
+            <div
+              className={`p-5 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                activeOrder.arrivalVerified
+                  ? 'bg-[#e6f1fa]/50 border-[#42b3b1]/40'
+                  : 'bg-[#f8fbfe] border-[#4e9ad9]'
+              }`}
+            >
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs font-extrabold text-[#0b3658]">
+                  {activeOrder.arrivalVerified ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-[#42b3b1]" />
+                      <span>Llegada del Trabajador Verificada (Sistema Rappi)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Navigation className="w-4 h-4 text-[#4e9ad9]" />
+                      <span>Esperando llegada de {activeOrder.proName}</span>
+                    </>
+                  )}
+                </div>
+                <p className="text-xs text-[#486984] max-w-xl leading-relaxed">
+                  {activeOrder.arrivalVerified
+                    ? `El trabajador registró tu código de seguridad correctamente${
+                        activeOrder.arrivalVerifiedAt
+                          ? ` el ${new Date(activeOrder.arrivalVerifiedAt).toLocaleString()}`
+                          : ''
+                      }. El servicio está en ejecución protegida.`
+                    : 'Cuando el trabajador toque a tu puerta, entrégale este código de 4 dígitos para que lo registre en su aplicación y confirme su llegada.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                {!activeOrder.arrivalVerified && activeOrder.arrivalCode && (
+                  <div className="px-5 py-3 rounded-2xl bg-[#0b3658] text-white text-center shadow-sm">
+                    <span className="text-[10px] uppercase tracking-wider text-[#e6f1fa]/80 font-bold flex items-center justify-center gap-1">
+                      <KeyRound className="w-3 h-3 text-[#4e9ad9]" />
+                      Código de Llegada
+                    </span>
+                    <div className="text-2xl font-black font-mono tracking-[0.28em] tabular-nums mt-0.5">
+                      {activeOrder.arrivalCode}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setChatDrawerMode('chat')}
+                    className="cord-btn-secondary px-3.5 py-2 text-xs font-bold flex items-center gap-1.5"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-[#4e9ad9]" />
+                    <span>Chat en vivo</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChatDrawerMode('email')}
+                    className="cord-btn-secondary px-3.5 py-2 text-xs font-bold flex items-center gap-1.5"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-[#4e9ad9]" />
+                    <span>Enviar correo</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Action Area conditioned by Escrow Status */}
           <div className="pt-2">
             {/* In Progress */}
             {activeOrder.escrowStatus === 'ESCROW_HELD' && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-[#e6f1fa] border border-[#dde7ee]">
                 <div>
-                  <div className="text-sm font-bold text-[#0b3658]">El profesional acudirá en la fecha programada</div>
+                  <div className="text-sm font-bold text-[#0b3658]">
+                    {activeOrder.arrivalVerified
+                      ? 'El trabajador ya está en tu domicilio realizando el servicio'
+                      : 'Fondos protegidos en custodia esperando la visita'}
+                  </div>
                   <div className="text-xs text-[#486984]">
-                    Al concluir la labor, el profesional te avisará para que puedas revisarlo.
+                    Cuando concluya el trabajo, el trabajador lo marcará como finalizado para que apruebes el pago.
                   </div>
                 </div>
-                <button
-                  onClick={() => handleProCompleteJob(activeOrder.id)}
-                  disabled={actionLoading}
-                  className="cord-btn-primary px-5 py-2 text-xs font-bold whitespace-nowrap shadow-sm"
-                >
-                  {actionLoading ? 'Actualizando...' : 'Marcar Trabajo como Realizado'}
-                </button>
+                <span className="px-4 py-2 rounded-full bg-white border border-[#dde7ee] text-xs font-bold text-[#0b3658] whitespace-nowrap">
+                  {activeOrder.arrivalVerified ? 'Servicio en ejecución' : 'Pendiente código de llegada'}
+                </span>
               </div>
             )}
 
@@ -546,6 +610,22 @@ export const EscrowTracker: React.FC<EscrowTrackerProps> = ({
             setCelebrationOrder(null);
             onSelectTab('services');
           }}
+        />
+      )}
+
+      {/* Real-time Chat & Email Drawer with assigned worker */}
+      {activeOrder && chatDrawerMode && (
+        <RealtimeChatDrawer
+          isOpen={Boolean(chatDrawerMode)}
+          onClose={() => setChatDrawerMode(null)}
+          currentUser={currentUser}
+          partner={{
+            id: activeOrder.proId,
+            name: activeOrder.proName,
+            trade: activeOrder.proTrade,
+          }}
+          incomingMessages={incomingMessages}
+          initialMode={chatDrawerMode}
         />
       )}
     </div>

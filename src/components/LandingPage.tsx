@@ -1,28 +1,21 @@
 import React, { useState } from 'react';
-import { 
-  ShieldCheck, 
-  Sparkles, 
-  Lock, 
-  TrendingDown, 
-  CheckCircle2, 
-  ArrowRight, 
-  Briefcase, 
-  UserCheck, 
-  Star, 
-  Clock, 
-  Award,
+import {
+  ShieldCheck,
+  Lock,
+  ArrowRight,
+  Briefcase,
+  UserCheck,
   Search,
-  Check,
-  ChevronRight,
-  Wrench,
-  Zap,
-  Flame,
-  Shield,
-  Box
+  MessageSquare,
+  KeyRound,
+  FileText,
+  Scale,
+  CheckCircle2,
+  X,
+  TrendingDown,
+  ShieldAlert,
 } from 'lucide-react';
-import { motion } from 'motion/react';
 import { ServiceItem } from '../types';
-import { formatCOP } from '../utils/formatCurrency';
 import { ThreeHeroCanvas } from './ThreeHeroCanvas';
 
 interface LandingPageProps {
@@ -30,577 +23,335 @@ interface LandingPageProps {
   onGoToClientHire: (category?: string) => void;
   onGoToProWork: () => void;
   onEnterFullApp: (tab?: string) => void;
-  onOpenAuthModal: () => void;
+  onOpenAuthModal: (role?: 'client' | 'professional') => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
-  services,
-  onGoToClientHire,
-  onGoToProWork,
-  onEnterFullApp,
   onOpenAuthModal,
 }) => {
-  const [activeRoleToggle, setActiveRoleToggle] = useState<'client' | 'pro'>('client');
-  const [heroSearch, setHeroSearch] = useState<string>('');
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
+  const [guideTab, setGuideTab] = useState<'client' | 'professional'>('client');
+  const [termsModalOpen, setTermsModalOpen] = useState<boolean>(false);
 
-  const handleHeroSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (activeRoleToggle === 'client') {
-      onGoToClientHire(selectedCategoryFilter === 'all' ? undefined : selectedCategoryFilter);
-    } else {
-      onGoToProWork();
-    }
-  };
-
-  const filterChips = [
-    { id: 'all', label: 'Todos los servicios', icon: Sparkles },
-    { id: 'plumbing', label: 'Plomería y cañerías', icon: Wrench },
-    { id: 'electricity', label: 'Electricidad certificada', icon: Zap },
-    { id: 'climatization', label: 'Gasodomésticos & Clima', icon: Flame },
-    { id: 'escrow', label: 'Custodia segura Velo', icon: Shield },
+  const clientSteps = [
+    {
+      num: '01',
+      title: 'Inicia sesión o regístrate como Cliente',
+      desc: 'Haz clic en el botón "Cliente". Tu cuenta es estrictamente privada y te da acceso exclusivo al portal de contratación, tus contratos y tu módulo de Gestión de Compras.',
+      icon: UserCheck,
+    },
+    {
+      num: '02',
+      title: 'Busca trabajadores por chat o filtros',
+      desc: 'Usa el chat buscador con autocompletado o los filtros laterales (oficio, ciudad, tarifa y verificación) para explorar anuncios y revisar el perfil completo de cada técnico.',
+      icon: Search,
+    },
+    {
+      num: '03',
+      title: 'Acuerda por chat o correo y contrata',
+      desc: 'Escríbele al trabajador en tiempo real desde la web o envíale un correo. Cuando lleguen a un acuerdo, presiona "Contratar" para proteger el pago en la bóveda de custodia Velo.',
+      icon: MessageSquare,
+    },
+    {
+      num: '04',
+      title: 'Entrega el código al llegar y libera el pago',
+      desc: 'Al confirmar el contrato recibirás un código secreto de 4 dígitos (sistema tipo Rappi). Entrégaselo al trabajador cuando llegue a tu domicilio y confirma la finalización para liberar el pago.',
+      icon: KeyRound,
+    },
   ];
+
+  const workerSteps = [
+    {
+      num: '01',
+      title: 'Regístrate como Trabajador con verificación',
+      desc: 'Entra por el botón "Trabajador". Ingresa tu nombre completo separado (primer nombre y primer apellido obligatorios), tu cédula y reconocimiento facial (puedes usar el botón Omitir en modo prueba).',
+      icon: Briefcase,
+    },
+    {
+      num: '02',
+      title: 'Publica tus anuncios de servicio',
+      desc: 'Desde tu portal privado crea anuncios con tu oficio, ciudad en Colombia, descripción de visita y tarifa base transparente para que los clientes te encuentren y contacten.',
+      icon: FileText,
+    },
+    {
+      num: '03',
+      title: 'Responde en tiempo real y confirma llegada',
+      desc: 'Chatea o responde correos desde la web sin cobros por cotizar. Al llegar al domicilio del cliente, registra el código de 4 dígitos que él te entregue para iniciar la ejecución.',
+      icon: KeyRound,
+    },
+    {
+      num: '04',
+      title: 'Finaliza el trabajo y gestiona tus ventas',
+      desc: 'Marca el servicio como finalizado para que el cliente libere el pago en custodia. Administra tus ingresos, clientes frecuentes y facturación desde el módulo Gestión de Ventas.',
+      icon: TrendingDown,
+    },
+  ];
+
+  const activeSteps = guideTab === 'client' ? clientSteps : workerSteps;
 
   return (
     <div className="bg-white text-[#0b3658] min-h-screen flex flex-col font-sans antialiased selection:bg-[#4e9ad9]/25 selection:text-[#0b3658]">
       {/* ==========================================================
-          1. NAVIGATION HEADER (cord.com style: sticky, minimal, #4e9ad9 CTA)
+          1. HEADER / TOP BAR (Clean 3-zone navigation)
       ========================================================== */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#dde7ee] px-4 lg:px-8 py-3.5 transition-all">
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#dde7ee] px-4 sm:px-6 lg:px-8 py-3.5">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between gap-6">
-          <div className="flex items-center gap-3 shrink-0">
-            <button 
-              onClick={() => onEnterFullApp('services')}
-              className="flex items-center gap-2 group text-left"
+          <a
+            href="#inicio"
+            className="text-2xl font-extrabold tracking-tight text-[#0b3658] whitespace-nowrap shrink-0 flex items-center gap-2"
+          >
+            <span className="w-8 h-8 rounded-xl bg-[#e6f1fa] flex items-center justify-center text-[#4e9ad9] font-extrabold text-lg">
+              v
+            </span>
+            <span>velo</span>
+          </a>
+
+          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-[#486984]">
+            <a
+              href="#sobre-la-web"
+              className="hover:text-[#0b3658] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
             >
-              <div className="w-9 h-9 rounded-2xl bg-[#e6f1fa] flex items-center justify-center text-[#4e9ad9] font-extrabold text-xl group-hover:scale-105 transition-transform">
-                v
-              </div>
-              <div>
-                <span className="text-2xl font-extrabold tracking-tight text-[#0b3658]">
-                  velo
-                </span>
-                <span className="text-[10px] text-[#4e9ad9] font-mono font-bold block -mt-1">
-                  COLOMBIA · ESCROW
-                </span>
-              </div>
-            </button>
-          </div>
-
-          <div className="hidden md:flex items-center gap-8 text-xs font-semibold text-[#486984]">
-            <a href="#propuesta" className="hover:text-[#0b3658] transition-colors">Propuesta</a>
-            <a href="#servicios" className="hover:text-[#0b3658] transition-colors">Servicios All-In</a>
-            <a href="#garantia" className="hover:text-[#0b3658] transition-colors">Garantía 24h</a>
-            <button onClick={() => onEnterFullApp('reverse-take-rate')} className="hover:text-[#0b3658] transition-colors">
-              Calculadora de Tarifas
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onOpenAuthModal}
-              className="cord-btn-secondary px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold tracking-tight whitespace-nowrap shadow-sm"
+              Sobre la web
+            </a>
+            <a
+              href="#como-usarla"
+              className="hover:text-[#0b3658] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
             >
-              <span>Ingresar</span>
+              Cómo usarla
+            </a>
+            <a
+              href="#terminos-footer"
+              className="hover:text-[#0b3658] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
+            >
+              Roles y términos
+            </a>
+          </nav>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => onOpenAuthModal('client')}
+              className="cord-btn-secondary px-4 py-2 text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 inline-flex items-center gap-1.5"
+            >
+              <UserCheck className="w-4 h-4 text-[#4e9ad9]" />
+              <span>Cliente</span>
             </button>
 
             <button
-              onClick={onGoToProWork}
-              className="cord-btn-primary px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold tracking-tight whitespace-nowrap flex items-center gap-1.5 shadow-sm"
+              type="button"
+              onClick={() => onOpenAuthModal('professional')}
+              className="cord-btn-primary px-4 py-2 text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 inline-flex items-center gap-1.5"
             >
               <Briefcase className="w-4 h-4" />
-              <span>Trabajar</span>
+              <span>Trabajador</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* ==========================================================
-          2. THREE.JS 3D HERO BANNER ("Diseño a primera vista" - Centered over 3D Canvas)
+          2. ADJUSTED THREE.JS 3D HERO (Airy blur veil without frame border, centered typography)
       ========================================================== */}
-      <section className="relative w-full h-[85vh] min-h-[720px] bg-gradient-to-b from-[#e6f1fa] via-[#f8fbfe] to-white border-b border-[#dde7ee] overflow-hidden flex items-center justify-center py-24 sm:py-32 px-4">
-        {/* Three.js 3D Interactive Canvas as background */}
+      <section
+        id="inicio"
+        className="relative w-full min-h-[540px] lg:min-h-[600px] bg-gradient-to-b from-[#e6f1fa]/80 via-[#f7fbff] to-white border-b border-[#dde7ee] overflow-hidden flex items-center justify-center py-16 sm:py-24 px-4 sm:px-6 lg:px-8"
+      >
         <ThreeHeroCanvas />
 
-        <div className="relative z-10 max-w-4xl w-full mx-auto text-center space-y-6 bg-white/80 backdrop-blur-2xl p-10 sm:p-16 rounded-[40px] shadow-[0px_30px_80px_0px_rgba(11,54,88,0.12)]">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e6f1fa] border border-[#dde7ee] text-xs font-bold text-[#4e9ad9] shadow-sm">
-            <Box className="w-4 h-4 text-[#4e9ad9] shrink-0" />
-            <span>Diseño a primera vista · Bóveda 3D Interactiva Velo</span>
-          </div>
+        {/* Soft radial frosted backdrop so centered text stays 100% legible without showing any box outline */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.88)_0%,rgba(255,255,255,0.68)_42%,rgba(255,255,255,0.08)_78%,rgba(255,255,255,0)_100%)]"
+        />
 
-          <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-black text-[#0b3658] tracking-tight leading-[1.08]">
-            El futuro de los servicios en <span className="text-[#4e9ad9]">Colombia</span>
+        <div className="relative z-10 max-w-3xl w-full mx-auto text-center space-y-6 px-4 py-8 sm:py-10 backdrop-blur-[2px]">
+          <p className="text-xs sm:text-sm font-semibold text-[#4e9ad9] tracking-tight">
+            Plataforma Colombiana de Servicios para el Hogar · Roles Privados · Pago en Custodia
+          </p>
+
+          <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-extrabold text-[#0b3658] tracking-tight leading-[1.08] [text-wrap:balance]">
+            Conectamos hogares y técnicos con{' '}
+            <span className="text-[#4e9ad9]">custodia segura</span>
           </h1>
 
-          <p className="text-sm sm:text-base text-[#486984] max-w-xl mx-auto leading-relaxed">
-            Pagos en custodia fiduciaria, cero cobros por cotizar a técnicos y tarifas decrecientes garantizadas para hogares y profesionales en Bogotá, Medellín y Cali.
+          <p className="text-base sm:text-lg text-[#486984] max-w-2xl mx-auto leading-relaxed">
+            Velo protege cada contratación en Colombia mediante pago retenido en garantía, chat y correo en tiempo real, y validación de llegada con código de 4 dígitos.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
             <button
-              onClick={() => onGoToClientHire()}
-              className="cord-btn-primary px-7 py-3.5 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-md"
+              type="button"
+              onClick={() => onOpenAuthModal('client')}
+              className="cord-btn-primary px-7 py-3.5 text-sm font-bold whitespace-nowrap shrink-0 inline-flex items-center gap-2 shadow-sm"
             >
-              <span>Explorar Servicios</span>
+              <UserCheck className="w-4 h-4" />
+              <span>Entrar como Cliente</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+
             <button
-              onClick={() => onEnterFullApp('escrow')}
-              className="cord-btn-secondary px-7 py-3.5 text-xs sm:text-sm font-bold shadow-sm"
+              type="button"
+              onClick={() => onOpenAuthModal('professional')}
+              className="cord-btn-secondary px-7 py-3.5 text-sm font-bold whitespace-nowrap shrink-0 inline-flex items-center gap-2"
             >
-              Ver Bóveda de Custodia
+              <Briefcase className="w-4 h-4 text-[#4e9ad9]" />
+              <span>Entrar como Trabajador</span>
             </button>
           </div>
         </div>
       </section>
 
-      {/* Main Body Content */}
-      <main className="flex-1 w-full space-y-20 lg:space-y-24">
-        {/* Hero Section */}
-        <motion.section 
-          initial={{ opacity: 0, y: 25 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="max-w-[1200px] mx-auto px-4 lg:px-8 pt-10 text-center space-y-6" 
-          id="propuesta"
+      {/* ==========================================================
+          3. SOBRE LA WEB (Solo información clara sobre qué es Velo)
+      ========================================================== */}
+      <main className="flex-1 w-full">
+        <section
+          id="sobre-la-web"
+          className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 space-y-10"
         >
-          <div className="inline-flex items-center justify-center">
-            <div className="cord-toggle-container">
-              <button
-                type="button"
-                onClick={() => setActiveRoleToggle('client')}
-                className={`px-5 py-2 text-xs sm:text-sm transition-all ${
-                  activeRoleToggle === 'client'
-                    ? 'cord-toggle-item-active'
-                    : 'cord-toggle-item-inactive hover:text-[#0b3658]'
-                }`}
-              >
-                Para encontrar técnicos
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveRoleToggle('pro')}
-                className={`px-5 py-2 text-xs sm:text-sm transition-all ${
-                  activeRoleToggle === 'pro'
-                    ? 'cord-toggle-item-active'
-                    : 'cord-toggle-item-inactive hover:text-[#0b3658]'
-                }`}
-              >
-                Para profesionales
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-4 max-w-4xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl lg:text-[50px] font-extrabold text-[#0b3658] tracking-[-0.03em] leading-[1.08]">
-              Servicios del hogar con{' '}
-              <span className="text-[#4e9ad9]">pago protegido</span> y tarifas sin sorpresas.
-            </h2>
-            <p className="text-base sm:text-lg text-[#486984] font-normal leading-relaxed max-w-2xl mx-auto">
-              Olvídate de presupuestos inflados y anticipos a ciegas. Tu dinero queda custodiado en la bóveda Velo hasta que compruebes el trabajo terminado. Y los técnicos no pagan por presupuestar.
+          <div className="max-w-3xl space-y-3">
+            <p className="text-xs font-semibold text-[#4e9ad9]">
+              01 · Información sobre la web
             </p>
-          </div>
-
-          <form 
-            onSubmit={handleHeroSearchSubmit}
-            className="max-w-2xl mx-auto relative flex items-center"
-          >
-            <div className="relative w-full">
-              <Search className="w-5 h-5 text-[#486984] absolute left-5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={heroSearch}
-                onChange={e => setHeroSearch(e.target.value)}
-                placeholder={
-                  activeRoleToggle === 'client'
-                    ? '¿Qué necesitas en tu hogar? Ej: Fuga en lavaplatos, tacos eléctricos, calentador a gas...'
-                    : 'Tu oficio o ciudad en Colombia: Ej: Plomería Bogotá, Electricista Medellín, Cali...'
-                }
-                className="w-full pl-12 pr-28 sm:pr-44 py-4 rounded-3xl bg-white border border-[#dde7ee] text-sm text-[#0b3658] placeholder-[#486984] focus:outline-none focus:border-[#4e9ad9] shadow-[0px_4px_32px_0px_rgba(11,54,88,0.06)] transition-all"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center px-2 py-1 rounded-[5px] bg-[#e6f1fa] text-[11px] font-mono font-medium text-[#4e9ad9]">
-                  ⌘K
-                </span>
-                <button
-                  type="submit"
-                  className="cord-btn-primary px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold flex items-center gap-1.5"
-                >
-                  <span>{activeRoleToggle === 'client' ? 'Buscar' : 'Unirme'}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          </form>
-
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-            {filterChips.map(chip => {
-              const Icon = chip.icon;
-              const isSelected = selectedCategoryFilter === chip.id;
-              return (
-                <button
-                  key={chip.id}
-                  onClick={() => {
-                    setSelectedCategoryFilter(chip.id);
-                    if (chip.id === 'escrow') {
-                      onEnterFullApp('escrow');
-                    } else {
-                      onGoToClientHire(chip.id === 'all' ? undefined : chip.id);
-                    }
-                  }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-                    isSelected
-                      ? 'bg-[#0b3658] text-white shadow-sm'
-                      : 'bg-white border border-[#dde7ee] text-[#0b3658] hover:border-[#4e9ad9]'
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5 text-[#4e9ad9]" />
-                  <span>{chip.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </motion.section>
-
-        {/* ==========================================================
-            3. SERVICES PREVIEW GRID (Fixed image proportions & spacing)
-        ========================================================== */}
-        <motion.section 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="max-w-[1200px] mx-auto px-4 lg:px-8 space-y-8" 
-          id="servicios"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="space-y-1">
-              <span className="cord-badge">
-                <Sparkles className="w-3.5 h-3.5 text-[#4e9ad9]" />
-                <span>Catálogo Oficial en Colombia</span>
-              </span>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#0b3658] tracking-tight">
-                Tarifas All-In con Profesionales Destacados
-              </h3>
-            </div>
-            <button
-              onClick={() => onGoToClientHire()}
-              className="text-sm font-semibold text-[#4e9ad9] hover:text-[#0b3658] inline-flex items-center gap-1 transition-colors"
-            >
-              <span>Ver catálogo completo ({services.length})</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-[#0b3658] tracking-tight [text-wrap:balance]">
+              ¿Qué es Velo y qué resuelve para hogares y trabajadores?
+            </h2>
+            <p className="text-base text-[#486984] leading-relaxed">
+              Velo es una plataforma web diseñada para eliminar la desconfianza, los cobros por anticipado y las tarifas ocultas al contratar servicios técnicos o reparaciones del hogar en Colombia. Todo ocurre dentro de espacios privados separados para cada rol.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map(service => (
-              <div
-                key={service.id}
-                className="cord-card-interactive p-5 flex flex-col justify-between group"
-              >
-                <div>
-                  {/* Perfectly proportioned image container (h-48 w-full object-cover rounded-[16px]) */}
-                  {service.imageUrl && (
-                    <div className="w-full h-48 rounded-2xl overflow-hidden mb-4 relative bg-[#e6f1fa] border border-[#dde7ee]">
-                      <img
-                        src={service.imageUrl}
-                        alt={service.title}
-                        loading="lazy"
-                        decoding="async"
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1 rounded-[5px] text-xs font-bold text-[#0b3658] shadow-sm border border-[#dde7ee]">
-                        {service.categoryLabel}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-2 text-xs text-[#486984] mb-1">
-                    <Clock className="w-3.5 h-3.5 text-[#486984]" />
-                    <span>~{service.estimatedHours} horas estimadas</span>
-                    <span>·</span>
-                    <span className="text-[#4e9ad9] font-medium">Bóveda Protegida</span>
-                  </div>
-
-                  <h4 className="text-lg font-bold text-[#0b3658] group-hover:text-[#4e9ad9] transition-colors leading-snug">
-                    {service.title}
-                  </h4>
-
-                  <p className="text-sm text-[#486984] mt-2 line-clamp-2 leading-relaxed">
-                    {service.description}
-                  </p>
-
-                  <ul className="mt-3.5 space-y-1.5 text-xs text-[#0b3658]">
-                    {service.includedTasks.slice(0, 3).map((task, idx) => (
-                      <li key={idx} className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-[#4e9ad9] shrink-0" />
-                        <span className="truncate">{task}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="mt-5 pt-4 border-t border-[#dde7ee] flex items-center justify-between gap-3">
-                  <div>
-                    <span className="text-[11px] font-semibold text-[#688dac] uppercase tracking-wider block">
-                      Precio All-In
-                    </span>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-xl sm:text-2xl font-extrabold text-[#0b3658] font-mono tabular-nums">
-                        {formatCOP(service.basePrice)}
-                      </span>
-                      <span className="text-xs text-[#486984]">Tarifa All-In</span>
-                    </div>
-                  </div>
-
-                  <div className="text-right space-y-1">
-                    <button
-                      onClick={() => onGoToClientHire(service.category)}
-                      className="cord-btn-primary px-4 py-2 text-xs font-bold whitespace-nowrap inline-flex items-center gap-1 shadow-sm"
-                    >
-                      <span>Solicitar</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                    <div className="text-[11px] font-semibold text-[#42b3b1] block text-right">
-                      100% verificado
-                    </div>
-                  </div>
-                </div>
+            <article className="p-6 rounded-[20px] bg-white border border-[#dde7ee] space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-[#e6f1fa] flex items-center justify-center text-[#4e9ad9]">
+                <Lock className="w-5 h-5" />
               </div>
-            ))}
+              <h3 className="text-lg font-bold text-[#0b3658]">
+                Pago retenido en custodia (Escrow)
+              </h3>
+              <p className="text-sm text-[#486984] leading-relaxed">
+                Cuando el cliente contrata, el dinero queda resguardado en la bóveda digital de Velo y no se entrega al trabajador hasta que la visita concluye y el cliente confirma su satisfacción.
+              </p>
+            </article>
+
+            <article className="p-6 rounded-[20px] bg-white border border-[#dde7ee] space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-[#e6f1fa] flex items-center justify-center text-[#4e9ad9]">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold text-[#0b3658]">
+                Roles privados e identidad verificada
+              </h3>
+              <p className="text-sm text-[#486984] leading-relaxed">
+                Clientes y trabajadores operan en portales totalmente aislados. Los trabajadores registran nombre y apellido separados, cédula y validación facial antes de publicar o atender servicios.
+              </p>
+            </article>
+
+            <article className="p-6 rounded-[20px] bg-white border border-[#dde7ee] space-y-3 md:col-span-2 lg:col-span-1">
+              <div className="w-10 h-10 rounded-xl bg-[#e6f1fa] flex items-center justify-center text-[#42b3b1]">
+                <KeyRound className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold text-[#0b3658]">
+                Verificación de llegada y trazabilidad
+              </h3>
+              <p className="text-sm text-[#486984] leading-relaxed">
+                Cada contrato genera un código único de 4 dígitos (sistema tipo Rappi) para confirmar la llegada presencial, además de módulos dedicados de Gestión de Compras y Gestión de Ventas.
+              </p>
+            </article>
           </div>
-        </motion.section>
+        </section>
 
         {/* ==========================================================
-            4. HOW IT WORKS (3 Simple Steps)
+            4. CÓMO USAR LA WEB (Guía interactiva Cliente vs Trabajador)
         ========================================================== */}
-        <motion.section 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="max-w-[1200px] mx-auto px-4 lg:px-8 space-y-8" 
-          id="garantia"
+        <section
+          id="como-usarla"
+          className="border-t border-[#dde7ee] bg-[#f8fbfe]/70 py-16 lg:py-20"
         >
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <span className="cord-badge">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#4e9ad9]" />
-              <span>Seguridad Radical en 3 Pasos</span>
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-[#0b3658] tracking-tight">
-              ¿Cómo funciona el pago en custodia Velo?
-            </h3>
-            <p className="text-sm text-[#486984]">
-              Diseñado para eliminar estafas, anticipos a ciegas y desintermediación.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="cord-card p-6 lg:p-8 space-y-4 bg-white border border-[#dde7ee]">
-              <div className="w-12 h-12 rounded-2xl bg-[#e6f1fa] border border-[#dde7ee] flex items-center justify-center text-[#4e9ad9] font-mono font-black text-lg shadow-sm">
-                1
-              </div>
-              <h4 className="text-lg font-extrabold text-[#0b3658]">
-                Apruebas Fondos en Custodia
-              </h4>
-              <p className="text-sm text-[#486984] leading-relaxed">
-                Seleccionas el servicio con precio cerrado. El dinero queda retenido de forma segura en la bóveda Velo, sin entregárselo al técnico por adelantado.
-              </p>
-            </div>
-
-            <div className="cord-card p-6 lg:p-8 space-y-4 bg-white border border-[#dde7ee]">
-              <div className="w-12 h-12 rounded-2xl bg-[#e6f1fa] border border-[#dde7ee] flex items-center justify-center text-[#4e9ad9] font-mono font-black text-lg shadow-sm">
-                2
-              </div>
-              <h4 className="text-lg font-extrabold text-[#0b3658]">
-                El Profesional Ejecuta la Visita
-              </h4>
-              <p className="text-sm text-[#486984] leading-relaxed">
-                El técnico verificado acude puntualmente a tu domicilio en Colombia, realiza la reparación con garantía de 6 meses y emite la factura oficial.
-              </p>
-            </div>
-
-            <div className="cord-card p-6 lg:p-8 space-y-4 bg-white border border-[#dde7ee]">
-              <div className="w-12 h-12 rounded-2xl bg-[#e6f1fa] border border-[#dde7ee] flex items-center justify-center text-[#42b3b1] font-mono font-black text-lg shadow-sm">
-                3
-              </div>
-              <h4 className="text-lg font-extrabold text-[#0b3658]">
-                Validas y se Libera el Pago
-              </h4>
-              <p className="text-sm text-[#486984] leading-relaxed">
-                Verificas que todo funcione a la perfección y presionas "Liberar Pago". Los fondos pasan inmediatamente a su billetera virtual con tarifa reducida para futuras visitas.
-              </p>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* ==========================================================
-            5. REVERSE TAKE RATE EXPLAINER PREVIEW
-        ========================================================== */}
-        <motion.section 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="max-w-[1200px] mx-auto px-4 lg:px-8"
-        >
-          <div className="cord-card p-8 lg:p-12 bg-gradient-to-br from-white via-[#f8fbfe] to-[#e6f1fa]/40 border border-[#dde7ee] space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2 max-w-xl">
-                <span className="cord-badge">
-                  <TrendingDown className="w-3.5 h-3.5 text-[#4e9ad9]" />
-                  <span>Modelo Win-Win-Win</span>
-                </span>
-                <h3 className="text-2xl lg:text-3xl font-extrabold text-[#0b3658] tracking-tight">
-                  Comisiones decrecientes del 15% al 5% (Reverse Take Rate)
-                </h3>
-                <p className="text-sm text-[#486984] leading-relaxed">
-                  En Velo cuantas más veces contratas al mismo profesional, menor es la comisión de plataforma. Premiamos la confianza y evitamos que las partes salgan de la app.
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <div className="max-w-2xl space-y-3">
+                <p className="text-xs font-semibold text-[#4e9ad9]">
+                  02 · Guía paso a paso
+                </p>
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-[#0b3658] tracking-tight [text-wrap:balance]">
+                  Cómo usar la plataforma según tu rol
+                </h2>
+                <p className="text-base text-[#486984] leading-relaxed">
+                  Selecciona si deseas ver el recorrido para contratar un trabajador o el recorrido para ofrecer tus servicios técnicos.
                 </p>
               </div>
 
-              <div className="p-5 rounded-3xl bg-white border border-[#dde7ee] shadow-sm text-center shrink-0">
-                <span className="text-[10px] text-[#688dac] uppercase tracking-wider block font-semibold">
-                  Comisión para Clientes Frecuentes
+              {/* Interactive Role Guide Selector */}
+              <div className="cord-toggle-container self-start md:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setGuideTab('client')}
+                  className={`px-5 py-2.5 text-xs sm:text-sm whitespace-nowrap shrink-0 transition-all ${
+                    guideTab === 'client'
+                      ? 'cord-toggle-item-active'
+                      : 'cord-toggle-item-inactive hover:text-[#0b3658]'
+                  }`}
+                >
+                  Uso para Clientes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGuideTab('professional')}
+                  className={`px-5 py-2.5 text-xs sm:text-sm whitespace-nowrap shrink-0 transition-all ${
+                    guideTab === 'professional'
+                      ? 'cord-toggle-item-active'
+                      : 'cord-toggle-item-inactive hover:text-[#0b3658]'
+                  }`}
+                >
+                  Uso para Trabajadores
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {activeSteps.map(step => {
+                const Icon = step.icon;
+                return (
+                  <div
+                    key={step.num}
+                    className="p-6 sm:p-7 rounded-[20px] bg-white border border-[#dde7ee] flex items-start gap-4"
+                  >
+                    <div className="w-11 h-11 rounded-2xl bg-[#e6f1fa] flex items-center justify-center text-[#0b3658] font-mono font-bold text-sm shrink-0 tabular-nums">
+                      {step.num}
+                    </div>
+                    <div className="space-y-1.5 min-w-0">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#4e9ad9]">
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span>{guideTab === 'client' ? 'Portal Cliente' : 'Portal Trabajador'}</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-[#0b3658] leading-snug">
+                        {step.title}
+                      </h3>
+                      <p className="text-sm text-[#486984] leading-relaxed">
+                        {step.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-4 border-t border-[#dde7ee]">
+              <p className="text-sm text-[#486984]">
+                {guideTab === 'client'
+                  ? '¿Necesitas un técnico verificado para tu hogar hoy?'
+                  : '¿Quieres publicar tus anuncios y gestionar tus ventas sin cobro por cotizar?'}
+              </p>
+              <button
+                type="button"
+                onClick={() => onOpenAuthModal(guideTab)}
+                className="cord-btn-primary px-6 py-3 text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 inline-flex items-center gap-2"
+              >
+                <span>
+                  {guideTab === 'client'
+                    ? 'Ingresar como Cliente'
+                    : 'Ingresar como Trabajador'}
                 </span>
-                <div className="text-4xl font-black text-[#4e9ad9] font-mono mt-1">
-                  5%
-                </div>
-                <div className="text-xs text-[#0b3658] font-medium mt-1">Tarifa VIP recurrente</div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#dde7ee] text-xs text-[#486984]">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-[#4e9ad9]" />
-                <span>0 $ de cobro por enviar presupuestos (0 pesos por lead)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-[#4e9ad9]" />
-                <span>Soporte y mediación humana en Colombia en menos de 12 horas</span>
-              </div>
-              <button
-                onClick={() => onEnterFullApp('reverse-take-rate')}
-                className="text-xs font-bold text-[#4e9ad9] hover:underline"
-              >
-                Abrir calculadora de comisiones →
-              </button>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* ==========================================================
-            6. TESTIMONIALS
-        ========================================================== */}
-        <motion.section 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="max-w-[1200px] mx-auto px-4 lg:px-8 space-y-6"
-        >
-          <div className="text-center max-w-xl mx-auto space-y-1">
-            <span className="cord-badge">
-              <Star className="w-3.5 h-3.5 text-[#4e9ad9] fill-[#4e9ad9]" />
-              <span>4.94 / 5 Satisfacción Verificada en Colombia</span>
-            </span>
-            <h3 className="text-2xl font-extrabold text-[#0b3658] tracking-tight">
-              Opiniones de quienes ya confían en Velo
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-            <div className="cord-card p-6 space-y-4">
-              <div className="flex items-center gap-1 text-[#4e9ad9]">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-[#4e9ad9]" />
-                ))}
-              </div>
-              <p className="text-[#0b3658] italic leading-relaxed">
-                "Tenía una fuga en el lavaplatos y en otros lados me cobraban solo por la visita. Con Velo pagué una tarifa cerrada en pesos que quedó en custodia hasta que Mario terminó el arreglo. Cero sorpresas."
-              </p>
-              <div className="flex items-center gap-3 pt-2 border-t border-[#dde7ee]">
-                <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80&fm=webp"
-                  alt="Carlos Méndez"
-                  loading="lazy"
-                  decoding="async"
-                  referrerPolicy="no-referrer"
-                  className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                />
-                <div>
-                  <strong className="text-[#0b3658] block font-bold">Carlos Méndez</strong>
-                  <span className="text-xs text-[#486984]">Cliente en Bogotá (Chapinero)</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="cord-card p-6 space-y-4">
-              <div className="flex items-center gap-1 text-[#4e9ad9]">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-[#4e9ad9]" />
-                ))}
-              </div>
-              <p className="text-[#0b3658] italic leading-relaxed">
-                "Estaba cansado de pagar por 'contactos' que nunca contrataban. En Velo no pago un solo peso por presupuestar y con mis clientes frecuentes en Bogotá la comisión me ha bajado al 5%."
-              </p>
-              <div className="flex items-center gap-3 pt-2 border-t border-[#dde7ee]">
-                <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80&fm=webp"
-                  alt="Mario Restrepo"
-                  loading="lazy"
-                  decoding="async"
-                  referrerPolicy="no-referrer"
-                  className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                />
-                <div>
-                  <strong className="text-[#0b3658] block font-bold">Mario Restrepo</strong>
-                  <span className="text-xs text-[#486984]">Maestro Plomero en Bogotá (148 servicios)</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* ==========================================================
-            7. FULL-BLEED DARK CTA BANNER (#0b3658 background)
-        ========================================================== */}
-        <section className="w-full bg-[#0b3658] py-16 px-4 lg:px-8 text-white text-center relative overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#4e9ad9]/15 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="max-w-4xl mx-auto space-y-6 relative z-10">
-            {/* Avatar Stack (-8px overlap) */}
-            <div className="flex items-center justify-center -space-x-3">
-              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80&fm=webp" alt="User 1" className="w-12 h-12 rounded-full object-cover border-2 border-[#0b3658] shadow-md" />
-              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80&fm=webp" alt="User 2" className="w-12 h-12 rounded-full object-cover border-2 border-[#0b3658] shadow-md" />
-              <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80&fm=webp" alt="User 3" className="w-12 h-12 rounded-full object-cover border-2 border-[#0b3658] shadow-md" />
-              <div className="w-12 h-12 rounded-full bg-[#4e9ad9] border-2 border-[#0b3658] flex items-center justify-center text-xs font-bold text-white shadow-md">
-                +3k
-              </div>
-            </div>
-
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-              Empieza a contratar con <span className="text-[#4e9ad9]">custodia segura</span> en Colombia
-            </h2>
-
-            <p className="text-sm sm:text-base text-[#e6f1fa]/80 max-w-xl mx-auto leading-relaxed">
-              Únete a miles de hogares y técnicos independientes en Bogotá, Medellín y Cali que operan sin sorpresas ni costes ocultos.
-            </p>
-
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                onClick={() => onEnterFullApp('services')}
-                className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#4e9ad9] text-white text-sm font-bold shadow-lg hover:brightness-110 hover:-translate-y-0.5 transition-all"
-              >
-                Explorar Servicios en Colombia
-              </button>
-              <button
-                onClick={onGoToProWork}
-                className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/10 border border-white/20 text-white text-sm font-semibold hover:bg-white/20 transition-all"
-              >
-                Registrarme como Técnico (0 $ Lead)
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -608,56 +359,202 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </main>
 
       {/* ==========================================================
-          8. FOOTER
+          5. FOOTER (Con botón + Términos, Condiciones, Roles y Responsabilidades)
       ========================================================== */}
-      <footer className="border-t border-[#dde7ee] py-12 px-4 lg:px-8 bg-white text-xs text-[#486984]">
-        <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-[#e6f1fa] flex items-center justify-center text-[#4e9ad9] font-extrabold text-sm">
-                v
+      <footer
+        id="terminos-footer"
+        className="border-t border-[#dde7ee] bg-white py-14 px-4 sm:px-6 lg:px-8 text-xs text-[#486984]"
+      >
+        <div className="max-w-[1200px] mx-auto space-y-10">
+          {/* Top row: Brand + Legal Action Button */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-[#dde7ee]">
+            <div className="space-y-2 max-w-xl">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-[#e6f1fa] flex items-center justify-center text-[#4e9ad9] font-extrabold text-sm">
+                  v
+                </div>
+                <span className="text-lg font-extrabold tracking-tight text-[#0b3658]">
+                  velo
+                </span>
+                <span className="text-[#dde7ee]">·</span>
+                <span>Colombia</span>
               </div>
-              <span className="text-lg font-black tracking-tight text-[#0b3658]">velo</span>
+              <p className="text-sm text-[#486984] leading-relaxed">
+                Marco operativo de uso, separación estricta de roles privados y responsabilidad de las partes en toda la plataforma web Velo.
+              </p>
             </div>
-            <p className="text-xs text-[#486984] leading-relaxed">
-              Plataforma SaaS-enabled con pagos en custodia fiduciaria y comisiones decrecientes para Colombia.
-            </p>
-            <div className="text-[11px] text-[#688dac] font-mono">
-              © 2026 Velo Colombia S.A.S. Todos los derechos reservados.
+
+            <button
+              type="button"
+              onClick={() => setTermsModalOpen(true)}
+              className="cord-btn-primary px-6 py-3 text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 inline-flex items-center gap-2 self-start md:self-auto"
+            >
+              <Scale className="w-4 h-4" />
+              <span>Ver Términos, Roles y Responsabilidades</span>
+            </button>
+          </div>
+
+          {/* Direct summary of Terms, Roles & Responsibilities in the Footer */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="space-y-2.5">
+              <h3 className="text-sm font-bold text-[#0b3658]">
+                Términos y Condiciones Generales
+              </h3>
+              <p className="leading-relaxed">
+                El acceso a Velo implica aceptar el uso lícito de la plataforma, la custodia temporal de pagos hasta la validación del servicio y la prohibición de acuerdos fuera de la app para evadir garantías o mediación.
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              <h3 className="text-sm font-bold text-[#0b3658]">
+                Roles Separados y Privados
+              </h3>
+              <p className="leading-relaxed">
+                <strong>Cliente:</strong> explora anuncios, chatea, contrata con custodia, entrega el código de 4 dígitos y gestiona sus compras.{' '}
+                <strong>Trabajador:</strong> valida cédula, rostro y nombres, publica anuncios, registra el código en sitio y administra sus ventas.
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              <h3 className="text-sm font-bold text-[#0b3658]">
+                Responsabilidades de las Partes
+              </h3>
+              <p className="leading-relaxed">
+                El cliente responde por la veracidad de la dirección y el resguardo del código de llegada. El trabajador responde por su idoneidad técnica y ejecución. Velo media disputas en menos de 12 horas y custodia fondos durante el servicio.
+              </p>
             </div>
           </div>
 
-          <div className="space-y-2.5">
-            <h4 className="text-base font-bold text-[#0b3658]">Para Clientes</h4>
-            <ul className="space-y-2 text-xs">
-              <li><button onClick={() => onGoToClientHire('plumbing')} className="hover:text-[#0b3658]">Plomería y Fugas</button></li>
-              <li><button onClick={() => onGoToClientHire('electricity')} className="hover:text-[#0b3658]">Electricidad y Breakers</button></li>
-              <li><button onClick={() => onGoToClientHire('climatization')} className="hover:text-[#0b3658]">Calentadores a Gas y Aire</button></li>
-              <li><button onClick={() => onEnterFullApp('escrow')} className="hover:text-[#0b3658]">Bóveda de Custodia Segura</button></li>
-            </ul>
-          </div>
-
-          <div className="space-y-2.5">
-            <h4 className="text-base font-bold text-[#0b3658]">Para Profesionales</h4>
-            <ul className="space-y-2 text-xs">
-              <li><button onClick={onGoToProWork} className="hover:text-[#0b3658]">Unirse como Técnico</button></li>
-              <li><button onClick={() => onEnterFullApp('pro-saas')} className="hover:text-[#0b3658]">Agenda y Facturación</button></li>
-              <li><button onClick={() => onEnterFullApp('reverse-take-rate')} className="hover:text-[#0b3658]">Tarifa decreciente 15% → 5%</button></li>
-              <li><button onClick={onGoToProWork} className="hover:text-[#0b3658]">0 $ por cotización (0 por lead)</button></li>
-            </ul>
-          </div>
-
-          <div className="space-y-2.5">
-            <h4 className="text-base font-bold text-[#0b3658]">Seguridad y Garantía</h4>
-            <ul className="space-y-2 text-xs">
-              <li><span className="text-[#0b3658] font-medium">Bóveda de Pagos Escrow</span></li>
-              <li><span className="text-[#0b3658] font-medium">Mediación Humana &lt; 12h</span></li>
-              <li><span className="text-[#0b3658] font-medium">Garantía 6 meses por escrito</span></li>
-              <li><span className="text-[#0b3658] font-medium">Factura oficial en PDF</span></li>
-            </ul>
+          <div className="pt-6 border-t border-[#dde7ee] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#688dac]">
+            <span>© 2026 Velo Colombia. Todos los derechos reservados.</span>
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setTermsModalOpen(true)}
+                className="font-semibold text-[#4e9ad9] hover:text-[#0b3658] hover:underline"
+              >
+                Documento completo de Términos y Responsabilidad
+              </button>
+              <span className="text-[#dde7ee]">·</span>
+              <button
+                type="button"
+                onClick={() => onOpenAuthModal('client')}
+                className="hover:text-[#0b3658]"
+              >
+                Acceso Cliente
+              </button>
+              <span className="text-[#dde7ee]">·</span>
+              <button
+                type="button"
+                onClick={() => onOpenAuthModal('professional')}
+                className="hover:text-[#0b3658]"
+              >
+                Acceso Trabajador
+              </button>
+            </div>
           </div>
         </div>
       </footer>
+
+      {/* ==========================================================
+          6. MODAL DE TÉRMINOS Y CONDICIONES, ROLES Y RESPONSABILIDAD
+      ========================================================== */}
+      {termsModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0b3658]/50 backdrop-blur-sm overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="terms-modal-title"
+        >
+          <div className="bg-white rounded-[24px] border border-[#dde7ee] shadow-2xl max-w-3xl w-full my-8 p-6 sm:p-8 relative space-y-6 max-h-[88vh] overflow-y-auto">
+            <button
+              type="button"
+              onClick={() => setTermsModalOpen(false)}
+              aria-label="Cerrar términos y condiciones"
+              className="absolute top-5 right-5 w-9 h-9 rounded-full bg-[#e6f1fa] text-[#486984] hover:text-[#0b3658] flex items-center justify-center transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="space-y-1.5 pr-10 border-b border-[#dde7ee] pb-4">
+              <p className="text-xs font-semibold text-[#4e9ad9]">
+                Marco Legal y Operativo de Velo Colombia
+              </p>
+              <h2
+                id="terms-modal-title"
+                className="text-xl sm:text-2xl font-extrabold text-[#0b3658]"
+              >
+                Términos y Condiciones, Roles y Responsabilidades
+              </h2>
+            </div>
+
+            <div className="space-y-6 text-sm text-[#486984] leading-relaxed">
+              <section className="space-y-2">
+                <h3 className="text-base font-bold text-[#0b3658] flex items-center gap-2">
+                  <Scale className="w-4 h-4 text-[#4e9ad9]" />
+                  <span>1. Términos y Condiciones Generales de toda la Web</span>
+                </h3>
+                <p>
+                  Al registrarse o utilizar cualquier sección de Velo (portada informativa, chat buscador con autocompletado, mensajería en tiempo real, contratación en custodia, verificación de llegada o módulos de Gestión de Compras y Ventas), el usuario acepta regirse por las presentes condiciones y las leyes vigentes de la República de Colombia.
+                </p>
+                <p>
+                  El valor acordado en pesos colombianos (COP) se retiene en custodia temporal desde la confirmación del contrato hasta que el cliente aprueba la finalización del servicio o hasta que se emita resolución mediante el sistema de mediación.
+                </p>
+              </section>
+
+              <section className="space-y-3">
+                <h3 className="text-base font-bold text-[#0b3658] flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#4e9ad9]" />
+                  <span>2. Roles Privados y Aislamiento de Cuentas</span>
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl bg-[#f8fbfe] border border-[#dde7ee] space-y-1.5">
+                    <h4 className="font-bold text-[#0b3658] text-sm">Rol: Cliente</h4>
+                    <p className="text-xs leading-relaxed">
+                      Accede exclusivamente al portal privado de clientes. Puede filtrar trabajadores, revisar perfiles, chatear o enviar correos en tiempo real, contratar servicios con pago en custodia, generar/entregar el código de llegada de 4 dígitos y administrar sus registros en Gestión de Compras. No puede acceder al panel de trabajadores.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#f8fbfe] border border-[#dde7ee] space-y-1.5">
+                    <h4 className="font-bold text-[#0b3658] text-sm">Rol: Trabajador</h4>
+                    <p className="text-xs leading-relaxed">
+                      Accede exclusivamente al portal privado de trabajadores tras registrar primer nombre y primer apellido obligatorios, cédula y reconocimiento facial (o marca temporal si omite en modo prueba). Publica anuncios, responde mensajes, valida su llegada con el código del cliente y gestiona sus ingresos en Gestión de Ventas.
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-2.5">
+                <h3 className="text-base font-bold text-[#0b3658] flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-[#4e9ad9]" />
+                  <span>3. Responsabilidades de cada Parte y de la Plataforma</span>
+                </h3>
+                <ul className="space-y-2 text-xs sm:text-sm list-disc pl-5">
+                  <li>
+                    <strong className="text-[#0b3658]">Responsabilidad del Cliente:</strong> Suministrar dirección exacta, describir con claridad la necesidad, custodiar el código secreto de 4 dígitos y entregarlo únicamente cuando el trabajador esté presencialmente en el sitio. Revisar el resultado antes de liberar el pago.
+                  </li>
+                  <li>
+                    <strong className="text-[#0b3658]">Responsabilidad del Trabajador:</strong> Aportar datos de identidad veraces, cumplir puntualmente las visitas aceptadas, ejecutar el trabajo bajo estándares técnicos seguros, registrar el código de llegada entregado por el cliente y responder por la garantía de su mano de obra.
+                  </li>
+                  <li>
+                    <strong className="text-[#0b3658]">Responsabilidad de Velo:</strong> Proveer la infraestructura tecnológica de intermediación, mantener la privacidad estricta entre roles, resguardar el dinero en custodia durante el servicio y atender disputas o incidencias mediante mediación humana en un plazo objetivo menor a 12 horas. Velo no asume responsabilidad por acuerdos paralelos ejecutados fuera de la plataforma ni por daños ajenos al alcance contratado.
+                  </li>
+                </ul>
+              </section>
+            </div>
+
+            <div className="pt-4 border-t border-[#dde7ee] flex flex-wrap items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setTermsModalOpen(false)}
+                className="cord-btn-primary px-6 py-2.5 text-xs sm:text-sm font-bold"
+              >
+                Entendido y cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

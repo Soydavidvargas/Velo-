@@ -1,6 +1,132 @@
 import { jsPDF } from 'jspdf';
-import { Order } from '../types';
+import { Order, PurchaseOrder, SaleOrder } from '../types';
 import { formatCOP } from './formatCurrency';
+
+export function generatePurchaseOrderPdf(purchase: PurchaseOrder): void {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  doc.setFillColor(11, 54, 88);
+  doc.rect(0, 0, pageWidth, 38, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.text('velo · Orden de Compra', 16, 19);
+  doc.setFontSize(9);
+  doc.setTextColor(78, 154, 217);
+  doc.text('Gestión de Compras para Clientes · Velo Colombia S.A.S.', 16, 28);
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text(`ORDEN: ${purchase.id}`, pageWidth - 16, 19, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.text(`Fecha: ${purchase.date} · Entrega: ${purchase.deliveryDate}`, pageWidth - 16, 27, { align: 'right' });
+
+  let y = 52;
+  doc.setTextColor(11, 54, 88);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('PROVEEDOR / FERRETERÍA', 16, y);
+  doc.text('SOLICITANTE (CLIENTE)', 115, y);
+
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(72, 105, 132);
+  doc.text(purchase.supplier, 16, y);
+  doc.text(`Prioridad: ${purchase.priority.toUpperCase()}`, 16, y + 6);
+  doc.text(purchase.clientName || 'Cliente Velo Colombia', 115, y);
+  doc.text(`Pago: ${purchase.paymentMethod || 'Custodia Velo'}`, 115, y + 6);
+
+  y += 22;
+  doc.setFillColor(230, 241, 250);
+  doc.roundedRect(16, y, pageWidth - 32, 9, 1, 1, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(11, 54, 88);
+  doc.text('DESCRIPCIÓN DE INSUMOS / SERVICIOS', 20, y + 6);
+  doc.text('ITEMS', 135, y + 6);
+  doc.text('TOTAL (COP)', pageWidth - 20, y + 6, { align: 'right' });
+
+  y += 16;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  const splitDesc = doc.splitTextToSize(purchase.description, 105);
+  doc.text(splitDesc, 20, y);
+  doc.text(`${purchase.items}`, 135, y);
+  doc.setFont('helvetica', 'bold');
+  doc.text(formatCOP(purchase.amount, true), pageWidth - 20, y, { align: 'right' });
+
+  doc.setFontSize(7.5);
+  doc.setTextColor(104, 141, 172);
+  doc.text('Velo Colombia S.A.S. - NIT 901.845.210-4 - Documento de Orden de Compra.', 16, 282);
+  doc.save(`Orden_Compra_Velo_${purchase.id}.pdf`);
+}
+
+export function generateSaleOrderPdf(sale: SaleOrder): void {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  doc.setFillColor(11, 54, 88);
+  doc.rect(0, 0, pageWidth, 38, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.text('velo · Orden de Venta', 16, 19);
+  doc.setFontSize(9);
+  doc.setTextColor(78, 154, 217);
+  doc.text('Gestión de Ventas para Técnicos · Velo Colombia S.A.S.', 16, 28);
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text(`VENTA: ${sale.id}`, pageWidth - 16, 19, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.text(`Emisión: ${sale.date} · Vence: ${sale.dueDate}`, pageWidth - 16, 27, { align: 'right' });
+
+  let y = 52;
+  doc.setTextColor(11, 54, 88);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('PROFESIONAL / TÉCNICO', 16, y);
+  doc.text('CLIENTE COMPRADOR', 115, y);
+
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(72, 105, 132);
+  doc.text(sale.salesRep, 16, y);
+  doc.text(`Términos: ${sale.paymentTerms}`, 16, y + 6);
+  doc.text(sale.customer, 115, y);
+  doc.text(`Estado pago: ${sale.paymentStatus.toUpperCase()}`, 115, y + 6);
+
+  y += 22;
+  doc.setFillColor(230, 241, 250);
+  doc.roundedRect(16, y, pageWidth - 32, 9, 1, 1, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(11, 54, 88);
+  doc.text('DETALLE DE SERVICIO / VENTA', 20, y + 6);
+  doc.text('ITEMS', 135, y + 6);
+  doc.text('TOTAL (COP)', pageWidth - 20, y + 6, { align: 'right' });
+
+  y += 16;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  const splitDesc = doc.splitTextToSize(sale.description || 'Servicios técnicos y materiales suministrados', 105);
+  doc.text(splitDesc, 20, y);
+  doc.text(`${sale.items}`, 135, y);
+  doc.setFont('helvetica', 'bold');
+  doc.text(formatCOP(sale.amount, true), pageWidth - 20, y, { align: 'right' });
+
+  doc.setFontSize(7.5);
+  doc.setTextColor(104, 141, 172);
+  doc.text('Velo Colombia S.A.S. - NIT 901.845.210-4 - Comprobante de Venta.', 16, 282);
+  doc.save(`Orden_Venta_Velo_${sale.id}.pdf`);
+}
 
 export function generateInvoicePdf(order: Order): void {
   const doc = new jsPDF({

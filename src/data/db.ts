@@ -1,8 +1,16 @@
 import fs from 'fs';
 import path from 'path';
-import { User, ServiceItem, Order } from '../types';
+import { User, ServiceItem, Order, PurchaseOrder, SaleOrder, WorkerAd, DirectMessage } from '../types';
 import { calculateCommission } from '../utils/reverseTakeRate';
-import { INITIAL_USERS, INITIAL_SERVICES, INITIAL_ORDERS } from './mockStore';
+import {
+  INITIAL_USERS,
+  INITIAL_SERVICES,
+  INITIAL_ORDERS,
+  INITIAL_PURCHASES,
+  INITIAL_SALES,
+  INITIAL_WORKER_ADS,
+  INITIAL_MESSAGES,
+} from './mockStore';
 
 export interface QueryFilter<T> {
   [key: string]: any;
@@ -218,6 +226,23 @@ export class MongoCollection<T extends { id: string; [key: string]: any }> {
     return updated;
   }
 
+  deleteOne(id: string): boolean {
+    const existing = this.items.get(id);
+    if (!existing) return false;
+    this.items.delete(id);
+    if ('category' in existing && typeof existing.category === 'string') {
+      this.indexByCategory.get(existing.category)?.delete(id);
+    }
+    if ('clientId' in existing && typeof existing.clientId === 'string') {
+      this.indexByClientId.get(existing.clientId)?.delete(id);
+    }
+    if ('proId' in existing && typeof existing.proId === 'string') {
+      this.indexByProId.get(existing.proId)?.delete(id);
+    }
+    veloDb.schedulePersistence();
+    return true;
+  }
+
   count(): number {
     return this.items.size;
   }
@@ -232,6 +257,10 @@ export class VeloDatabase {
   public users: MongoCollection<User>;
   public services: MongoCollection<ServiceItem>;
   public orders: MongoCollection<Order>;
+  public purchases: MongoCollection<PurchaseOrder>;
+  public sales: MongoCollection<SaleOrder>;
+  public workerAds: MongoCollection<WorkerAd>;
+  public messages: MongoCollection<DirectMessage>;
   public cache: RedisLikeCache;
   public jobQueue: BackgroundJobQueue;
   private dbPath: string;
@@ -247,10 +276,41 @@ export class VeloDatabase {
 
     this.users = new MongoCollection<User>(persisted?.users || INITIAL_USERS);
     this.services = new MongoCollection<ServiceItem>(persisted?.services || INITIAL_SERVICES);
-    this.orders = new MongoCollection<Order>(persisted?.orders || INITIAL_ORDERS);
+
+    const rawOrders = persisted?.orders || INITIAL_ORDERS;
+    const normalizedOrders = rawOrders.map((o, idx) => ({
+      ...o,
+      arrivalCode: o.arrivalCode || String(1000 + ((idx * 1373 + 3942) % 9000)),
+      arrivalVerified:
+        typeof o.arrivalVerified === 'boolean'
+          ? o.arrivalVerified
+          : o.escrowStatus !== 'ESCROW_HELD',
+    }));
+
+    this.orders = new MongoCollection<Order>(normalizedOrders);
+    this.purchases = new MongoCollection<PurchaseOrder>(
+      persisted?.purchases && persisted.purchases.length > 0 ? persisted.purchases : INITIAL_PURCHASES
+    );
+    this.sales = new MongoCollection<SaleOrder>(
+      persisted?.sales && persisted.sales.length > 0 ? persisted.sales : INITIAL_SALES
+    );
+    this.workerAds = new MongoCollection<WorkerAd>(
+      persisted?.workerAds && persisted.workerAds.length > 0 ? persisted.workerAds : INITIAL_WORKER_ADS
+    );
+    this.messages = new MongoCollection<DirectMessage>(
+      persisted?.messages && persisted.messages.length > 0 ? persisted.messages : INITIAL_MESSAGES
+    );
   }
 
-  private loadFromDisk(): { users: User[]; services: ServiceItem[]; orders: Order[] } | null {
+  private loadFromDisk(): {
+    users: User[];
+    services: ServiceItem[];
+    orders: Order[];
+    purchases?: PurchaseOrder[];
+    sales?: SaleOrder[];
+    workerAds?: WorkerAd[];
+    messages?: DirectMessage[];
+  } | null {
     try {
       if (fs.existsSync(this.dbPath)) {
         const raw = fs.readFileSync(this.dbPath, 'utf-8');
@@ -275,6 +335,10 @@ export class VeloDatabase {
           users: this.users.toArray(),
           services: this.services.toArray(),
           orders: this.orders.toArray(),
+          purchases: this.purchases.toArray(),
+          sales: this.sales.toArray(),
+          workerAds: this.workerAds.toArray(),
+          messages: this.messages.toArray(),
           lastSavedAt: new Date().toISOString(),
         };
         fs.writeFileSync(this.dbPath, JSON.stringify(data, null, 2), 'utf-8');
@@ -319,19 +383,29 @@ export class VeloDatabase {
   createOrder(data: {
     clientId: string;
     proId: string;
-    serviceId: string;
+    serviceId?: string;
+    workerAdId?: string;
+    customTitle?: string;
+    customPrice?: number;
+    category?: string;
     scheduledDate: string;
     scheduledTimeSlot: string;
     address: string;
     notes?: string;
   }): Order {
-    const client = this.users.findById(data.clientId) || this.users.toArray()[0];
-    const pro = this.users.findById(data.proId) || this.users.toArray()[1];
-    const service = this.services.findById(data.serviceId) || this.services.toArray()[0];
+    const client = this.users.findById(data.clientId) || this.users.toArray().find(u => u.role === 'client') || this.users.toArray()[0];
+    const pro = this.users.findById(data.proId) || this.users.toArray().find(u => u.role === 'professional') || this.users.toArray()[1];
+    const ad = data.workerAdId ? this.workerAds.findById(data.workerAdId) : null;
+    const service = (data.serviceId ? this.services.findById(data.serviceId) : null) || (ad?.serviceId ? this.services.findById(ad.serviceId) : null) || this.services.toArray()[0];
+
+    const finalPrice = data.customPrice || ad?.priceFrom || service.basePrice;
+    const finalTitle = data.customTitle || ad?.title || service.title;
+    const finalCategory = data.category || ad?.category || service.category;
 
     const pastOrdersCount = this.countHistoricalOrdersBetween(client.id, pro.id);
     const transactionNumber = pastOrdersCount + 1;
-    const commission = calculateCommission(service.basePrice, transactionNumber);
+    const commission = calculateCommission(finalPrice, transactionNumber);
+    const arrivalCode = String(Math.floor(1000 + Math.random() * 9000));
 
     const newOrder: Order = {
       id: `ord_velo_${Date.now().toString().slice(-6)}`,
@@ -343,17 +417,21 @@ export class VeloDatabase {
       proName: pro.name,
       proTrade: pro.trade || 'Profesional Velo',
       serviceId: service.id,
-      serviceTitle: service.title,
-      category: service.category,
+      serviceTitle: finalTitle,
+      category: finalCategory,
       scheduledDate: data.scheduledDate,
       scheduledTimeSlot: data.scheduledTimeSlot,
       address: data.address,
       notes: data.notes,
-      allInPrice: service.basePrice,
+      allInPrice: finalPrice,
       commission,
       escrowStatus: 'ESCROW_HELD',
       escrowTransactionId: `tx_velo_sec_${Math.floor(10000000 + Math.random() * 90000000)}`,
       escrowLockedAt: new Date().toISOString(),
+      proAccepted: true,
+      arrivalCode,
+      arrivalVerified: false,
+      workerAdId: ad?.id,
     };
 
     this.orders.insertOne(newOrder);
@@ -367,6 +445,29 @@ export class VeloDatabase {
 
     this.cache.del('platform_stats');
     return newOrder;
+  }
+
+  verifyArrivalCode(orderId: string, code: string, proId?: string): Order {
+    const order = this.orders.findById(orderId);
+    if (!order) throw new Error('Contrato u orden no encontrada');
+    if (proId && order.proId !== proId) {
+      throw new Error('No tienes permiso para verificar la llegada de este contrato');
+    }
+    if (order.arrivalVerified) {
+      return order;
+    }
+    const cleanCode = String(code || '').trim();
+    if (!cleanCode || cleanCode !== order.arrivalCode) {
+      throw new Error('Código de llegada incorrecto. Pídele al cliente su código de 4 dígitos.');
+    }
+
+    const updated = this.orders.updateOne(orderId, {
+      arrivalVerified: true,
+      arrivalVerifiedAt: new Date().toISOString(),
+      proAccepted: true,
+    });
+    this.cache.del('platform_stats');
+    return updated!;
   }
 
   markCompletedByPro(orderId: string): Order {

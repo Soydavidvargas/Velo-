@@ -46,23 +46,6 @@
   --leading-hero: 1;
   --tracking-hero: -0.5px;
 
-  /* Spacing */
-  --spacing-4: 4px;
-  --spacing-8: 8px;
-  --spacing-12: 12px;
-  --spacing-16: 16px;
-  --spacing-20: 20px;
-  --spacing-24: 24px;
-  --spacing-28: 28px;
-  --spacing-32: 32px;
-  --spacing-40: 40px;
-  --spacing-48: 48px;
-  --spacing-56: 56px;
-  --spacing-60: 60px;
-  --spacing-64: 64px;
-  --spacing-80: 80px;
-  --spacing-180: 180px;
-
   /* Border Radius */
   --radius-md: 5px;
   --radius-lg: 8px;
